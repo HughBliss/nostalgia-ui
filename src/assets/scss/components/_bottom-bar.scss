@@ -1,0 +1,15 @@
+@import "../vars";
+
+.bottom-bar {
+  height: 20px;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: #b0b0b0;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}

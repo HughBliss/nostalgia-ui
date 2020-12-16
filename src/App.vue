@@ -1,32 +1,37 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
+    <Preloader :percent-loaded.sync="percent" v-if="percent<100"></Preloader>
     <router-view/>
   </div>
 </template>
+<script>
+import Preloader from '@/components/Preloader'
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+export default {
+  name: 'Home',
+  data () {
+    return {
+      percent: 0
+    }
+  },
+  methods: {
+    showPreloader (coefficient) {
+      for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+          this.percent++
+        }, i * coefficient)
+      }
+      this.percent = 0
+    }
+  },
+  components: { Preloader },
+  created () {
+    this.showPreloader(200)
+  },
+  watch: {
+    $route () {
+      this.showPreloader(10)
     }
   }
 }
-</style>
+</script>

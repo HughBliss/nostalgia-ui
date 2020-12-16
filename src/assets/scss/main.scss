@@ -1,0 +1,11 @@
+@import "vars";
+@import "fonts";
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  transition: all 0.5s;
+}
+
+@import "components/preloader";
+@import "components/bottom-bar";

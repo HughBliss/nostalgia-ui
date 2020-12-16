@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Mono&display=swap');
+@import "vars";
+
+* {
+  font-family: 'PT Mono', monospace;
+  font-size: 15px;
+  color: $--black;
+  font-weight: 900;
+}
