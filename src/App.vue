@@ -11,27 +11,29 @@ export default {
   name: 'Home',
   data () {
     return {
-      percent: 0
+      percent: 100
     }
   },
-  methods: {
-    showPreloader (coefficient) {
-      for (let i = 0; i < 100; i++) {
-        setTimeout(() => {
-          this.percent++
-        }, i * coefficient)
-      }
-      this.percent = 0
-    }
-  },
-  components: { Preloader },
-  created () {
-    this.showPreloader(200)
-  },
-  watch: {
-    $route () {
-      this.showPreloader(10)
-    }
-  }
+  // methods: {
+  //   showPreloader (coefficient) {
+  //     const interval = setInterval(() => {
+  //       this.percent++
+  //       console.log(interval)
+  //       if (this.percent === 100) {
+  //         clearInterval(interval)
+  //       }
+  //     }, coefficient)
+  //     this.percent = 0
+  //   }
+  // },
+  components: { Preloader }
+  // created () {
+  //   this.showPreloader(50)
+  // },
+  // watch: {
+  //   $route () {
+  //     this.showPreloader(10)
+  //   }
+  // }
 }
 </script>
