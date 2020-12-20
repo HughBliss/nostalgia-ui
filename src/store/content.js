@@ -1,13 +1,23 @@
 const INIT_STATE = 'INIT_STATE'
 const DRAW_BOX = 'DRAW_BOX'
 const DRAW_CELL = 'DRAW_CELL'
+const SET_BOX_COUNT = 'SET_BOX_COUNT'
+const CLOSE_BOX = 'CLOSE_BOX'
+const SELECT_BOX = 'SELECT_BOX'
 
 class Cell {
-  constructor (cls = '', content = ' ', callback = () => {
+  constructor ({
+    cls, content, isOnTop, boxId, callback
   }) {
-    this.cls = cls
-    this.content = content
+    this.cls = cls || ' '
+    this.content = content || ' '
     this.callback = callback
+    this.isOnTop = isOnTop
+    this.boxId = boxId || 0
+  }
+
+  setPosition (pos) {
+    this.isOnTop = pos
   }
 }
 
@@ -17,28 +27,19 @@ const createField = (width, height) => {
   for (let i = 0; i < initialField.length; i++) {
     const row = Array(width)
     for (let j = 0; j < row.length; j++) {
-      row[j] = new Cell()
+      row[j] = [new Cell({ isOnTop: true })]
     }
     initialField[i] = row
   }
   return initialField.slice()
 }
 
-// addWindow(x, y, w, h, s = true) {
-//   if (s) {
-//     this.drawBox(x + 1, y + 1, w, h, 'shadow')
-//   }
-//   this.drawBox(x, y, w, h, 'window')
-//   this.field[y + 1][x + w - 2] = new Cell('close', 'X', () => {
-//     this.cleanField(y + 1, x + w - 2)
-//   })
-// }
-
 const
   state = {
     field: [],
     width: 0,
-    height: 0
+    height: 0,
+    boxCount: 1
   }
 
 const mutations = {
@@ -47,15 +48,65 @@ const mutations = {
     state.width = width
     state.height = height
   },
-  [DRAW_BOX]: (state, { posX, posY, width, height, cls }) => {
+  [DRAW_BOX]: (state, { posX, posY, width, height, cls, boxId, callback }) => {
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
-        state.field[i + posY][j + posX] = new Cell(cls)
+        state.field[i + posY][j + posX] = [
+          ...state.field[i + posY][j + posX]
+            .map(l => {
+              l.setPosition(false)
+              return l
+            })
+            .filter(l => l.boxId !== boxId),
+          new Cell({ cls, boxId, callback, isOnTop: true })
+        ]
       }
     }
   },
-  [DRAW_CELL]: (state, { posX, posY, cls, callback, content }) => {
-    state.field[posY][posX] = new Cell(cls, content, callback)
+  [DRAW_CELL]: (state, { posX, posY, cls, callback, content, boxId }) => {
+    state.field[posY][posX] = [
+      ...state.field[posY][posX]
+        .map(l => {
+          l.setPosition(false)
+          return l
+        })
+        .filter(l => l.boxId !== boxId),
+      new Cell({ cls, content, callback, boxId, isOnTop: true })
+    ]
+  },
+  [SET_BOX_COUNT]: (state, newCount) => {
+    state.boxCount = newCount
+  },
+  [SELECT_BOX]: (state, boxId) => {
+    for (let i = 0; i < state.width; i++) {
+      for (let j = 0; j < state.height; j++) {
+        state.field[j][i] = state.field[j][i]
+          .map(layer => {
+            if (layer.boxId === boxId) {
+              state.field[j][i].forEach(l => {
+                l.setPosition(false)
+              })
+              console.log(state.field[j][i])
+              layer.setPosition(true)
+            }
+            return layer
+          })
+      }
+    }
+  },
+  [CLOSE_BOX]: (state, boxId) => {
+    for (let i = 0; i < state.width; i++) {
+      for (let j = 0; j < state.height; j++) {
+        state.field[j][i] = state.field[j][i]
+          .filter(layer => layer.boxId !== boxId)
+        // .map(layer => {
+        //   if (layer.boxId === boxId - 1) {
+        //     layer.setPosition(true)
+        //   }
+        // })
+      }
+    }
+    state.boxCount = state.boxCount - 1
   }
 }
 
@@ -64,19 +115,33 @@ const actions = {
     commit(INIT_STATE, { width, height })
   },
   addWindow ({ commit, state }, { posX, posY, width, height, hasShadow }) {
+    const boxId = state.boxCount
+    console.log(boxId)
     if (hasShadow) {
-      commit(DRAW_BOX, { posX: posX + 1, posY: posY + 1, width, height, cls: 'shadow' })
+      commit(DRAW_BOX, { posX: posX + 1, posY: posY + 1, width, height, cls: 'shadow', boxId })
     }
-    commit(DRAW_BOX, { posX, posY, width, height, cls: 'window' })
+    commit(DRAW_BOX, {
+      posX,
+      posY,
+      width,
+      height,
+      cls: 'window',
+      boxId,
+      callback () {
+        commit(SELECT_BOX, boxId)
+      }
+    })
     commit(DRAW_CELL, {
       posX: posX + width - 2,
       posY: posY + 1,
       cls: 'close',
       content: 'X',
-      callback: () => {
-        commit(INIT_STATE, { height: state.height, width: state.width })
-      }
+      callback () {
+        commit(CLOSE_BOX, boxId)
+      },
+      boxId
     })
+    commit(SET_BOX_COUNT, state.boxCount + 1)
   }
 }
 
